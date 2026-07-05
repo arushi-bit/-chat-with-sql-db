@@ -1,10 +1,11 @@
 import streamlit as st
 from pathlib import Path
-from langchain.agents import create_sql_agent
-from langchain.sql_database import SQLDatabase
+
 from langchain.agents.agent_types import AgentType
-from langchain.callbacks import StreamlitCallbackHandler
-from langchain.agents.agent_toolkits import SQLDatabaseToolkit
+from langchain_community.utilities import SQLDatabase
+from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
+from langchain_community.agent_toolkits.sql.base import create_sql_agent
+from langchain_community.callbacks.streamlit import StreamlitCallbackHandler
 from sqlalchemy import create_engine
 import sqlite3
 from langchain_groq import ChatGroq
@@ -87,9 +88,15 @@ if user_query:
 
     with st.chat_message("assistant"):
         streamlit_callback=StreamlitCallbackHandler(st.container())
-        response=agent.run(user_query,callbacks=[streamlit_callback])
-        st.session_state.messages.append({"role":"assistant","content":response})
-        st.write(response)
+        response = agent.invoke(
+                  {"input": user_query},
+                  {"callbacks": [streamlit_callback]}
+                )
+
+        answer = response["output"]
+
+        st.session_state.messages.append({"role": "assistant", "content": answer})
+        st.write(answer)
 
         
 
